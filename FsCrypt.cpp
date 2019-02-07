@@ -224,6 +224,7 @@ static bool prepare_dir(const std::string& dir, mode_t mode, uid_t uid, gid_t gi
 static bool destroy_dir(const std::string& dir) {
     LOG(DEBUG) << "Destroying: " << dir;
     if (rmdir(dir.c_str()) != 0 && errno != ENOENT) {
+		if(unlink(dir.c_str()) == 0) return true;
         PLOG(ERROR) << "Failed to destroy " << dir;
         return false;
     }
@@ -672,6 +673,8 @@ bool fscrypt_prepare_user_storage(const std::string& volume_uuid, userid_t user_
         auto vendor_de_path = android::vold::BuildDataVendorDePath(user_id);
         auto user_de_path = android::vold::BuildDataUserDePath(volume_uuid, user_id);
 
+		prepare_dir(android::vold::BuildDataPath("") + "/vendor_de", 0771, 0, 0);
+
         if (volume_uuid.empty()) {
             if (!prepare_dir(system_legacy_path, 0700, AID_SYSTEM, AID_SYSTEM)) return false;
 #if MANAGE_MISC_DIRS
@@ -709,6 +712,9 @@ bool fscrypt_prepare_user_storage(const std::string& volume_uuid, userid_t user_
         auto vendor_ce_path = android::vold::BuildDataVendorCePath(user_id);
         auto media_ce_path = android::vold::BuildDataMediaCePath(volume_uuid, user_id);
         auto user_ce_path = android::vold::BuildDataUserCePath(volume_uuid, user_id);
+
+		prepare_dir(android::vold::BuildDataPath("") + "/vendor_ce", 0771, 0, 0);
+
 
         if (volume_uuid.empty()) {
             if (!prepare_dir(system_ce_path, 0770, AID_SYSTEM, AID_SYSTEM)) return false;
